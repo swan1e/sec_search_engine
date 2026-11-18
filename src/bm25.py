@@ -1,20 +1,27 @@
 import json
+import os
 import bm25s
 import Stemmer
+
+INDEX_DIR = "data/processed/bm25_index"
 
 with open("./data/chunks.json", "r", encoding="utf-8") as f:
     chunks = json.load(f)
 
 stemmer = Stemmer.Stemmer("english")
 
-corpus_tokens = bm25s.tokenize(
-    [chunk["text"] for chunk in chunks],
-    stopwords="en",
-    stemmer=stemmer
-)
-
-retriever = bm25s.BM25(corpus=chunks)
-retriever.index(corpus_tokens)
+if os.path.exists(INDEX_DIR):
+    retriever = bm25s.BM25.load(INDEX_DIR, load_corpus=True)
+else:
+    corpus_tokens = bm25s.tokenize(
+        [chunk["text"] for chunk in chunks],
+        stopwords="en",
+        stemmer=stemmer
+    )
+    retriever = bm25s.BM25(corpus=chunks)
+    retriever.index(corpus_tokens)
+    os.makedirs(INDEX_DIR, exist_ok=True)
+    retriever.save(INDEX_DIR, corpus=chunks)
 
 def search(query, k=2):
     query_tokens = bm25s.tokenize(
@@ -36,7 +43,11 @@ def search(query, k=2):
         print(doc["text"])
         print()
 
-results = search("revenue growth")
+while True:
+    query = input("Search (or 'q' to quit): ")
+    if query.strip().lower() == "q":
+        break
+    search(query, k=3)
 
 
 # import json
