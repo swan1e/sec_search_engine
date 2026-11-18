@@ -15,6 +15,7 @@ for path in files:
     with open(path, "r", encoding="utf-8", errors="ignore") as f:
         raw = f.read()
 
+    raw = raw.replace("\xa0", " ")
     # clean = BeautifulSoup(raw, "html.parser").get_text(" ", strip=True)
     soup = BeautifulSoup(raw, "html.parser")
 
@@ -24,7 +25,7 @@ for path in files:
     for tag in soup.find_all(["p", "div", "tr"]):
         tag.append("\n")
 
-    clean = soup.get_text(separator="")
+    clean = soup.get_text(separator=" ")
 
     clean = re.sub(r"[ \t]+", " ", clean)
     clean = re.sub(r" *\n *", "\n", clean)
@@ -52,6 +53,7 @@ for path in files:
     for m in ends:
         if m.start() > start:
             end = m.start()
+            break
 
     risk_factors  = clean[start : end] if end else clean[start:]
 
