@@ -43,11 +43,17 @@ def search(query, k=2):
         print(doc["text"])
         print()
 
-while True:
-    query = input("Search (or 'q' to quit): ")
-    if query.strip().lower() == "q":
-        break
-    search(query, k=3)
+def get_results(query, k):
+    query_tokens = bm25s.tokenize(query, stopwords="en", stemmer=stemmer)
+    results, scores = retriever.retrieve(query_tokens, k=min(k, len(chunks)))
+    return [(results[0, i], float(scores[0, i])) for i in range(results.shape[1])]
+
+if __name__ == "__main__":
+    while True:
+        query = input("Search (or 'q' to quit): ")
+        if query.strip().lower() == "q":
+            break
+        search(query, k=3)
 
 
 # import json
